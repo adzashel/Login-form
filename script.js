@@ -18,20 +18,22 @@ if( !fs.existsSync(filePath)) {
 // read and parse json file
 const renderData = () => {
     const dataBuffer = fs.readFileSync(filePath);
-    const data = dataBuffer.parse();
+    const data = JSON.parse(dataBuffer);
     return data;
 }
 
+const saveUserData = (data) => {
+    fs.writeFileSync(filePath, JSON.stringify(data), 'utf8');
+}
+
 // find username and password
-const findUserName = (username, password) => {
+const addUser = (user) => {
     const data = renderData();
-    const findData = data.find((user) => {
-        user.username === username && user.password === password
-    });
-    return findData;
+    data.push(user);
+    saveUserData(data);
 }
 
 
 module.exports = {
-    findUserName
+    addUser
 }
