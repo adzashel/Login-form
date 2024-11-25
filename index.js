@@ -1,9 +1,9 @@
 // configure modules
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
+const { body , validationResult } = require("express-validator");
 const app = express();
-const bcrypt = require("bcrypt");
-const { addUser } = require("./script");
+const { addUser , duplicateEmail} = require("./script");
 const bodyParser = require("body-parser");
 
 // use body-parser middleware
@@ -32,7 +32,15 @@ app.get("/login", (req, res) => {
   });
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", [
+  body('email').isEmail().custom(( value ) => {
+    const isEmailDuplicate = duplicateEmail(value);
+    if(isEmailDuplicate) {
+      throw new Error('Email already exists');
+    }
+    return true;
+  })
+] ,(req, res) => {
   addUser(req.body);
   console.log('new data received');
   res.redirect('/');

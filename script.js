@@ -26,6 +26,13 @@ const saveUserData = (data) => {
     fs.writeFileSync(filePath, JSON.stringify(data), 'utf8');
 }
 
+// check duplicate email addresses
+const duplicateEmail = (email) => {
+    const datas = renderData();
+    const isEmailDuplicate = datas.find( data => data.email === email);
+    return isEmailDuplicate;
+}
+
 // find username and password
 const addUser = (user) => {
     const data = renderData();
@@ -35,5 +42,6 @@ const addUser = (user) => {
 
 
 module.exports = {
-    addUser
+    addUser,
+    duplicateEmail
 }
