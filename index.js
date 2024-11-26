@@ -5,6 +5,24 @@ const { body , validationResult } = require("express-validator");
 const app = express();
 const { addUser , duplicateEmail} = require("./script");
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const flash = require("connect-flash");
+
+// use express-session middleware and cookie parser
+app.use(cookieParser());
+app.use(
+  session({
+    secret: "secret",
+    resave: true,
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 600000, // 10 minutes
+    },
+  })
+);
+
+app.use(flash());
 
 // use body-parser middleware
 
@@ -23,7 +41,11 @@ const port = 5175;
 // middleware
 
 app.get('/' , (req, res) => {
-    res.send("HOME");
+    res.render('home', {
+      title: "Home",
+      layout: "layouts/container",
+      message : req.flash('success')
+    })
 })
 app.get("/login", (req, res) => {
   res.render("login", {
@@ -41,9 +63,19 @@ app.post("/login", [
     return true;
   })
 ] ,(req, res) => {
-  addUser(req.body);
-  console.log('new data received');
-  res.redirect('/');
+ const errors  = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.render('login' , {
+      title: "Login",
+      layout: "layouts/container",
+      errors: errors.array(),
+      user: req.body
+    });
+  } else {
+    addUser(req.body);
+    req.flash('success', "Login success");
+    res.redirect("/");
+  }
 });
 
 app.listen(port, (err, res) => {
