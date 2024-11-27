@@ -1,9 +1,9 @@
 // configure modules
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
-const { body , validationResult } = require("express-validator");
+const { body, validationResult, checkSchema } = require("express-validator");
 const app = express();
-const { addUser , duplicateEmail} = require("./script");
+const { addUser, duplicateEmail } = require("./script");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
@@ -40,13 +40,14 @@ const port = 5175;
 
 // middleware
 
-app.get('/' , (req, res) => {
-    res.render('home', {
-      title: "Home",
-      layout: "layouts/container",
-      message : req.flash('success')
-    })
-})
+app.get("/", (req, res) => {
+  res.render("home", {
+    title: "Home",
+    layout: "layouts/container",
+    message: req.flash("success"),
+    errors: req.flash("error"),
+  });
+});
 app.get("/login", (req, res) => {
   res.render("login", {
     title: "Login",
@@ -54,34 +55,49 @@ app.get("/login", (req, res) => {
   });
 });
 
-app.post("/login", [
-  body('email').isEmail().custom(( value ) => {
-    const isEmailDuplicate = duplicateEmail(value);
-    if(isEmailDuplicate) {
-      throw new Error('Email already exists');
+app.post(
+  "/login",
+    checkSchema({
+      password: {
+        isLength: { options: { min: 8 } },
+        errorMessage:
+          "Password must be at least 8 characters long ,contain at least one lowercase letter, one uppercase letter, one number, and one special character.",
+        matches:
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+      },
+      email: {
+        isEmail: true,
+        errorMessage: "Invalid email format",
+        custom: {
+          options: (value) => {
+            return !duplicateEmail(value);
+          },
+          errorMessage: "Email already exists",
+        },
+      }
     }
-    return true;
-  })
-] ,(req, res) => {
- const errors  = validationResult(req);
-  if (!errors.isEmpty()) {
-    res.render('login' , {
-      title: "Login",
-      layout: "layouts/container",
-      errors: errors.array(),
-      user: req.body
-    });
-  } else {
-    addUser(req.body);
-    req.flash('success', "Login success");
-    res.redirect("/");
+  ),
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.render("login", {
+        title: "Login",
+        layout: "layouts/container",
+        errors: errors.array(),
+        user: req.body,
+      });
+    } else {
+      addUser(req.body);
+      req.flash("success", "Login success");
+      res.redirect("/");
+    }
   }
-});
+);
 
 app.listen(port, (err, res) => {
   if (err) {
     console.error("Error starting server:", err);
   } else {
-    console.log(`Server running on port localhost:${port}`);
+    console.log(`Server running on port http://localhost:${port}`);
   }
 });

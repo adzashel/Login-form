@@ -1,1 +1,4 @@
-[{"email":"seigneur.noir15@gmail.com","password":"test"},{"email":"asheladz@gmail.com","password":"gggamink"}]
+[
+  { "email": "seigneur.noir15@gmail.com", "password": "test" },
+  { "email": "asheladz@gmail.com", "password": "gggamink" }
+]
