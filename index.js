@@ -1,7 +1,7 @@
 // configure modules
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
-const { body, validationResult, checkSchema } = require("express-validator");
+const { body, validationResult, check} = require("express-validator");
 const app = express();
 const { addUser, duplicateEmail } = require("./script");
 const bodyParser = require("body-parser");
@@ -55,28 +55,23 @@ app.get("/login", (req, res) => {
   });
 });
 
+
 app.post(
-  "/login",
-    checkSchema({
-      password: {
-        isLength: { options: { min: 8 } },
-        errorMessage:
-          "Password must be at least 8 characters long ,contain at least one lowercase letter, one uppercase letter, one number, and one special character.",
-        matches:
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-      },
-      email: {
-        isEmail: true,
-        errorMessage: "Invalid email format",
-        custom: {
-          options: (value) => {
-            return !duplicateEmail(value);
-          },
-          errorMessage: "Email already exists",
-        },
+  "/login",[
+    body('email').isEmail().withMessage('Invalid email')
+    .custom(( value ) => {
+      const isEmailDuplicate = duplicateEmail(value);
+      // check if email already exists
+      if(isEmailDuplicate) {
+        throw new Error('Email already exists');
+      } else {
+        return true; // email is unique
       }
-    }
-  ),
+    }),
+    check('password' , 'The password must be at least 8 chars and 1 uppercase character')
+    .isLength( { min : 8 })
+    .matches(/[A-Z]/)
+  ],
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

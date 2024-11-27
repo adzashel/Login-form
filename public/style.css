@@ -103,3 +103,27 @@ a {
     text-decoration: none;
     color: #ffeba7;
 }
+
+
+.err-msg {
+    /* ... other styles ... */
+    animation: shake 0.5s;
+    color:  rgb(220,20,60);
+    animation-iteration-count: 2;
+    list-style-type: none;
+    text-align: center;
+  }
+
+  .err-wrapper {
+    margin-top: 1rem;
+  }
+  
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    50% { transform: translateX(10px);
+   }
+    75% { transform: translateX(-10px); }
+    100% { transform: translateX(0);  
+   }
+  }
