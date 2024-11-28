@@ -17,7 +17,6 @@
         class="form-control"
         id="email"
         name="email"
-        value="<%= user.email %>"
       />
     </div>
     <div class="form-group">
@@ -36,15 +35,13 @@
         class="form-control"
         id="password"
         name="password"
-        value="<%= user.password %>"
       />
     </div>
     <% if (typeof errors !== 'undefined') { %>
       <div class="err-wrapper">
        <% errors.forEach(error => { %>
-         <li class="err-msg"> <%= error.msg %></li>
+        <li class="err-msg"><%= error.msg %></li>
        <% }) %>
-      </div>
      <% } %>
     <button type="submit" class="btn">Login</button>
     <p>Don't have an account? <a href="/register">Register</a></p>

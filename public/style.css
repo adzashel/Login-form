@@ -111,7 +111,7 @@ a {
     color:  rgb(220,20,60);
     animation-iteration-count: 2;
     list-style-type: none;
-    text-align: center;
+    font-size: 12px;
   }
 
   .err-wrapper {

@@ -1,7 +1,12 @@
 // configure modules
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
-const { body, validationResult, check} = require("express-validator");
+const {
+  body,
+  validationResult,
+  check,
+  checkSchema,
+} = require("express-validator");
 const app = express();
 const { addUser, duplicateEmail } = require("./script");
 const bodyParser = require("body-parser");
@@ -55,23 +60,36 @@ app.get("/login", (req, res) => {
   });
 });
 
-
 app.post(
-  "/login",[
-    body('email').isEmail().withMessage('Invalid email')
-    .custom(( value ) => {
-      const isEmailDuplicate = duplicateEmail(value);
-      // check if email already exists
-      if(isEmailDuplicate) {
-        throw new Error('Email already exists');
-      } else {
-        return true; // email is unique
-      }
-    }),
-    check('password' , 'The password must be at least 8 chars and 1 uppercase character')
-    .isLength( { min : 8 })
-    .matches(/[A-Z]/)
-  ],
+  "/login",
+  checkSchema({
+    password: {
+      errorMessage:
+        " contain at least 6 characters, one uppercase letter, one lowercase letter, one number, and one special character",
+      isLength: {
+        options: { min: 8 },
+      },
+      matches: { 
+        options : /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*]{8,}$/ 
+       },
+    },
+    email: {
+      isEmail: {
+        errorMessage: "Please enter a valid email address",
+      },
+      custom: {
+        options: (value) => {
+          // Custom validation logic to check for duplicate emails
+          // Replace this with your actual duplicate email check logic
+          const isDuplicate = duplicateEmail(value);
+          if (isDuplicate) {
+            throw new Error("Email already exists");
+          }
+          return true;
+        },
+      },
+    },
+  }),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

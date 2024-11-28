@@ -30,7 +30,7 @@ const saveUserData = (data) => {
 const duplicateEmail = (email) => {
     const datas = renderData();
     const isEmailDuplicate = datas.find( data => data.email === email);
-    return isEmailDuplicate;
+    return isEmailDuplicate;  // return true if email exists, false otherwise  // for simplicity, we just check if the email is present in the array  // in a real-world application, you would need to implement more complex logic to handle duplicates (e.g. unique usernames, email addresses, etc.)  // this function is used in the login and registration routes to check for duplicates before adding new users to the database  // this function should be called after validating the user input
 }
 
 // find username and password
