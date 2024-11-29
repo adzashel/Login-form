@@ -64,13 +64,13 @@ app.post(
   "/login",
   checkSchema({
     password: {
-      errorMessage:
-        " contain at least 6 characters, one uppercase letter, one lowercase letter, one number, and one special character",
       isLength: {
         options: { min: 8 },
+        errorMessage : "Password must be at least 8 characters"
       },
       matches: { 
-        options : /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*]{8,}$/ 
+        options : /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[_!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/, 
+        errorMessage : "Password must be at least one uppercase letter , one lowercase letter , and unique symbols"
        },
     },
     email: {
@@ -106,6 +106,11 @@ app.post(
     }
   }
 );
+
+// register route middleware
+app.get('/register' , (req, res) => {
+  res.send('this is a registration page');
+});
 
 app.listen(port, (err, res) => {
   if (err) {
