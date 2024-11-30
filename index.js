@@ -69,8 +69,8 @@ app.post(
         errorMessage : "Password must be at least 8 characters"
       },
       matches: { 
-        options : /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[_!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/, 
-        errorMessage : "Password must be at least one uppercase letter , one lowercase letter , and unique symbols"
+        options : /^(?=.*[a-z])(?=.*[A-Z])(?=.*[_!@#$%^&*](?=.*\d))[A-Za-z\d!@#$%^&*]{8,}$/, 
+        errorMessage : "Password must be at least 1 uppercase letter , owercase letter , and unique symbols"
        },
     },
     email: {
@@ -109,7 +109,10 @@ app.post(
 
 // register route middleware
 app.get('/register' , (req, res) => {
-  res.send('this is a registration page');
+  res.render('register' , {
+    title: 'Register',
+    layout: 'layouts/container'
+  })
 });
 
 app.listen(port, (err, res) => {
