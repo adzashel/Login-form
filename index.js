@@ -13,7 +13,6 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const flash = require("connect-flash");
-
 // use express-session middleware and cookie parser
 app.use(cookieParser());
 app.use(
@@ -66,12 +65,14 @@ app.post(
     password: {
       isLength: {
         options: { min: 8 },
-        errorMessage : "Password must be at least 8 characters"
+        errorMessage: "Password must be at least 8 characters",
       },
-      matches: { 
-        options : /^(?=.*[a-z])(?=.*[A-Z])(?=.*[_!@#$%^&*](?=.*\d))[A-Za-z\d!@#$%^&*]{8,}$/, 
-        errorMessage : "Password must be at least 1 uppercase letter , owercase letter , and unique symbols"
-       },
+      matches: {
+        options:
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*[_!@#$%^&*](?=.*\d))[A-Za-z\d!@#$%^&*]{8,}$/,
+        errorMessage:
+          "Password must be at least 1 uppercase letter , owercase letter , and unique symbols",
+      },
     },
     email: {
       isEmail: {
@@ -107,14 +108,50 @@ app.post(
   }
 );
 
+const validationEmailPass = {
+  email: {
+    isEmail: true,
+    errorMessage: "Please enter a valid email address",
+  },
+  password: {
+    isLength: {
+      options: { min: 8 },
+    },
+    matches: {
+      options:
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[_!@#$%^&*](?=.*\d))[A-Za-z\d!@#$%^&*]{8,}$/,
+      errorMessage:
+        "Password must be at least 8 characters , uppercase and lowercase , and symbols",
+    },
+  },
+};
+
 // register route middleware
-app.get('/register' , (req, res) => {
-  res.render('register' , {
-    title: 'Register',
-    layout: 'layouts/container'
-  })
+app.get("/register", (req, res) => {
+  res.render("register", {
+    title: "Register",
+    layout: "layouts/container",
+  });
 });
 
+// send request to register
+app.post("/register", 
+  checkSchema(validationEmailPass), (req, res) => {
+  const errors = validationResult(req);
+  // check if error is exist
+  if(errors.isEmpty() === false) {
+    res.render("register", {
+      title: "Register",
+      layout: "layouts/container",
+      errors: errors.array(),
+      user: req.body,
+    });
+  } else {
+    addUser(req.body);
+    req.flash("success", "Registration success");
+    res.redirect("/");
+  }
+});
 app.listen(port, (err, res) => {
   if (err) {
     console.error("Error starting server:", err);

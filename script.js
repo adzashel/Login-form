@@ -39,9 +39,9 @@ const duplicateEmail = (email) => {
 
 // find username and password
 const addUser = (user) => {
-    const data = renderData();
+    const data = renderData(); //json
     data.push(user);
-    saveUserData(data);
+    saveUserData(data); // string data
 }
 
 
