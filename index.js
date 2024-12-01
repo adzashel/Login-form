@@ -2,9 +2,7 @@
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
 const {
-  body,
   validationResult,
-  check,
   checkSchema,
 } = require("express-validator");
 const app = express();
