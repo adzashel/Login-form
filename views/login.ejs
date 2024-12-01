@@ -1,9 +1,6 @@
 <div class="container">
   <form action="/login" method="post" class="form">
     <h1>Login</h1>
-    <% if (typeof errors !== 'undefined') { %> <% errors.forEach(error => { %>
-    <li class="err-msg"><%= error.msg %></li>
-    <% }) %> <% } %>
     <div class="reg-group">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -40,6 +37,10 @@
         name="password"
       />
     </div>
+    <br>
+    <% if (typeof errors !== 'undefined') { %> <% errors.forEach(error => { %>
+      <li class="err-msg"><%= error.msg %></li>
+      <% }) %> <% } %>
     <button type="submit" class="btn">Login</button>
     <p>Don't have an account? <a href="/register">Register</a></p>
   </form>

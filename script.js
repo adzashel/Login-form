@@ -44,8 +44,26 @@ const addUser = (user) => {
     saveUserData(data); // string data
 }
 
+// validate email and then passed validation
+const validateEmail = (email) => {
+    const datas = renderData(); //json
+    const isEmailExist = datas.find(data => {
+        email === data.email;
+    });
+    return isEmailExist;  // return true if user exists, false otherwise
+}
+
+// validate password and then passed validation
+const validatePassword = (password) => {
+    const datas = renderData(); //json
+    // check if passord is valid
+    const isPasswordExist = datas.find(data => password === data.password);
+    return isPasswordExist;  // return true if password exists, false otherwise
+}
 
 module.exports = {
     addUser,
-    duplicateEmail
+    duplicateEmail,
+    validateEmail,
+    validatePassword
 }

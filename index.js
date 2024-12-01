@@ -1,12 +1,9 @@
 // configure modules
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
-const {
-  validationResult,
-  checkSchema,
-} = require("express-validator");
+const { validationResult, checkSchema } = require("express-validator");
 const app = express();
-const { addUser, duplicateEmail } = require("./script");
+const { addUser, duplicateEmail, validateEmail , validatePassword } = require("./script");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
@@ -57,69 +54,79 @@ app.get("/login", (req, res) => {
   });
 });
 
-app.post(
-  "/login",
-  checkSchema({
-    password: {
-      isLength: {
-        options: { min: 8 },
-        errorMessage: "Password must be at least 8 characters",
-      },
-      matches: {
-        options:
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*[_!@#$%^&*](?=.*\d))[A-Za-z\d!@#$%^&*]{8,}$/,
-        errorMessage:
-          "Password must be at least 1 uppercase letter , owercase letter , and unique symbols",
-      },
-    },
-    email: {
-      isEmail: {
-        errorMessage: "Please enter a valid email address",
-      },
-      custom: {
-        options: (value) => {
-          // Custom validation logic to check for duplicate emails
-          // Replace this with your actual duplicate email check logic
-          const isDuplicate = duplicateEmail(value);
-          if (isDuplicate) {
-            throw new Error("Email already exists");
-          }
-          return true;
-        },
+// validation schemas
+const validationUser = {
+  email: {
+    isEmail: true,
+    errorMessage: "Please enter a valid email address",
+    custom: {
+      options : (value) => {
+        // validate user by email and password
+        const isEmailExist = validateEmail(value); // value = email
+        // check if email and password are valid
+        if(!isEmailExist) { // email false or not exist
+          throw new Error('Email is not registered');
+        } 
+        return true; // if email is valid
       },
     },
-  }),
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.render("login", {
-        title: "Login",
-        layout: "layouts/container",
-        errors: errors.array(),
-        user: req.body,
-      });
-    } else {
-      addUser(req.body);
-      req.flash("success", "Login success");
-      res.redirect("/");
+  },
+  password: {
+    custom : {
+      options : ( value ) => {
+        const isPasswordExist = validatePassword(value); // value = password
+        if(isPasswordExist) {
+          throw new Error('Password is incorrect');
+        }
+        return true; // if password is valid
+      }
     }
   }
-);
+};
+
+app.post("/login", 
+  checkSchema(validationUser),
+  (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.render("login", {
+      title: "Login",
+      layout: "layouts/container",
+      errors: errors.array(),
+      user: req.body,
+    });
+  } else {
+
+    req.flash("success", "Login success");
+    res.redirect("/");
+  }
+});
 
 const validationEmailPass = {
   email: {
     isEmail: true,
     errorMessage: "Please enter a valid email address",
+    custom: {
+      options: (value) => {
+        // Custom validation logic to check for duplicate emails
+        // Replace this with your actual duplicate email check logic
+        const isDuplicate = duplicateEmail(value);
+        if (isDuplicate) {
+          throw new Error("Email already exists");
+        }
+        return true;
+      },
+    },
   },
   password: {
     isLength: {
       options: { min: 8 },
+      errorMessage: "Password must be at least 8 characters",
     },
     matches: {
       options:
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*[_!@#$%^&*](?=.*\d))[A-Za-z\d!@#$%^&*]{8,}$/,
-      errorMessage:
-        "Password must be at least 8 characters , uppercase and lowercase , and symbols",
+      errorMessage: "Password needs uppercase , lowercase , and unique symbols",
     },
   },
 };
@@ -133,11 +140,10 @@ app.get("/register", (req, res) => {
 });
 
 // send request to register
-app.post("/register", 
-  checkSchema(validationEmailPass), (req, res) => {
+app.post("/register", checkSchema(validationEmailPass), (req, res) => {
   const errors = validationResult(req);
   // check if error is exist
-  if(errors.isEmpty() === false) {
+  if (errors.isEmpty() === false) {
     res.render("register", {
       title: "Register",
       layout: "layouts/container",
