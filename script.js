@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 
+
 // create directory if it doesn't exist
 const dirPath = 'database';
 if( !fs.existsSync(dirPath)) {
@@ -47,23 +48,15 @@ const addUser = (user) => {
 // validate email and then passed validation
 const validateEmail = (email) => {
     const datas = renderData(); //json
-    const isEmailExist = datas.find(data => {
-        email === data.email;
-    });
-    return isEmailExist;  // return true if user exists, false otherwise
+    const isEmailExist = datas.find( data => data.email === email);
+    return isEmailExist;
 }
 
-// validate password and then passed validation
-const validatePassword = (password) => {
-    const datas = renderData(); //json
-    // check if passord is valid
-    const isPasswordExist = datas.find(data => password === data.password);
-    return isPasswordExist;  // return true if password exists, false otherwise
-}
+
 
 module.exports = {
     addUser,
     duplicateEmail,
     validateEmail,
-    validatePassword
+    renderData
 }

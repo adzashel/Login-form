@@ -1,13 +1,21 @@
 // configure modules
 const express = require("express");
+const data = require("./database/login.json");
 const expressLayouts = require("express-ejs-layouts");
 const { validationResult, checkSchema } = require("express-validator");
 const app = express();
-const { addUser, duplicateEmail, validateEmail , validatePassword } = require("./script");
+const {
+  addUser,
+  duplicateEmail,
+  validateEmail,
+  renderData,
+} = require("./script");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const flash = require("connect-flash");
+const bcrypt = require("bcrypt");
+
 // use express-session middleware and cookie parser
 app.use(cookieParser());
 app.use(
@@ -51,6 +59,7 @@ app.get("/login", (req, res) => {
   res.render("login", {
     title: "Login",
     layout: "layouts/container",
+    errMessage: req.flash("error"),
   });
 });
 
@@ -59,48 +68,8 @@ const validationUser = {
   email: {
     isEmail: true,
     errorMessage: "Please enter a valid email address",
-    custom: {
-      options : (value) => {
-        // validate user by email and password
-        const isEmailExist = validateEmail(value); // value = email
-        // check if email and password are valid
-        if(!isEmailExist) { // email false or not exist
-          throw new Error('Email is not registered');
-        } 
-        return true; // if email is valid
-      },
-    },
   },
-  password: {
-    custom : {
-      options : ( value ) => {
-        const isPasswordExist = validatePassword(value); // value = password
-        if(isPasswordExist) {
-          throw new Error('Password is incorrect');
-        }
-        return true; // if password is valid
-      }
-    }
-  }
 };
-
-app.post("/login", 
-  checkSchema(validationUser),
-  (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    res.render("login", {
-      title: "Login",
-      layout: "layouts/container",
-      errors: errors.array(),
-      user: req.body,
-    });
-  } else {
-
-    req.flash("success", "Login success");
-    res.redirect("/");
-  }
-});
 
 const validationEmailPass = {
   email: {
@@ -140,7 +109,7 @@ app.get("/register", (req, res) => {
 });
 
 // send request to register
-app.post("/register", checkSchema(validationEmailPass), (req, res) => {
+app.post("/register", checkSchema(validationEmailPass), async (req, res) => {
   const errors = validationResult(req);
   // check if error is exist
   if (errors.isEmpty() === false) {
@@ -148,14 +117,50 @@ app.post("/register", checkSchema(validationEmailPass), (req, res) => {
       title: "Register",
       layout: "layouts/container",
       errors: errors.array(),
-      user: req.body,
     });
   } else {
-    addUser(req.body);
+    const { email, password } = req.body;
+    // check email
+    const hashedPassword = await bcrypt.hash(password, 13);
+    if (!hashedPassword) {
+      throw new Error('error hashing');
+    }
+    // add user to data
+    addUser({
+      email,
+      hashed: hashedPassword,
+    });
     req.flash("success", "Registration success");
     res.redirect("/");
   }
 });
+
+app.post("/login", checkSchema(validationUser), async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.render("login", {
+      title: "Login",
+      layout: "layouts/container",
+      errors: errors.array(),
+    });
+  } else {
+    const { email , password } = req.body;
+    const isEmailValid = validateEmail(email);
+    if(!isEmailValid) {
+      req.flash("error", "Email does not exist");
+      res.redirect("/login");
+      return;
+    }
+    const data =  await renderData();
+    const isValid = await bcrypt.compare(password , data.password);
+    if(!isValid) {
+      req.flash("error", "Incorrect password");
+      res.redirect("/login");
+      return;
+    }
+  }
+});
+
 app.listen(port, (err, res) => {
   if (err) {
     console.error("Error starting server:", err);
