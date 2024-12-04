@@ -1,7 +1,5 @@
 const fs = require('fs');
 
-
-
 // create directory if it doesn't exist
 const dirPath = 'database';
 if( !fs.existsSync(dirPath)) {
