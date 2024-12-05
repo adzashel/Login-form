@@ -1,18 +1,33 @@
 // configure modules
 const express = require("express");
+const mongoose = require("mongoose");
 const fs = require("fs");
 const expressLayouts = require("express-ejs-layouts");
 const { validationResult, checkSchema } = require("express-validator");
 const app = express();
-const {
-  addUser,
-  duplicateEmail,
-} = require("./script");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const flash = require("connect-flash");
 const bcrypt = require("bcrypt");
+
+// connect to mongodb
+mongoose
+  .connect("mongodb://localhost:27017/login", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("Connection error:", err));
+
+// create user schema
+const userSchema = new mongoose.Schema({
+  email: String,
+  password: String,
+});
+
+// create User model
+const User = mongoose.model("user_login", userSchema);
 
 // use express-session middleware and cookie parser
 app.use(cookieParser());
@@ -73,17 +88,6 @@ const validationEmailPass = {
   email: {
     isEmail: true,
     errorMessage: "Please enter a valid email address",
-    custom: {
-      options: (value) => {
-        // Custom validation logic to check for duplicate emails
-        // Replace this with your actual duplicate email check logic
-        const isDuplicate = duplicateEmail(value);
-        if (isDuplicate) {
-          throw new Error("Email already exists");
-        }
-        return true;
-      },
-    },
   },
   password: {
     isLength: {
@@ -107,9 +111,7 @@ app.get("/register", (req, res) => {
 });
 
 // send request to register
-app.post("/register", 
-  checkSchema(validationEmailPass), 
-  async (req, res) => {
+app.post("/register", checkSchema(validationEmailPass), async (req, res) => {
   const errors = validationResult(req);
   // check if error is exist
   if (!errors.isEmpty()) {
@@ -120,19 +122,28 @@ app.post("/register",
     });
   } else {
     const { email, password } = req.body;
-    const saltRound = 13
+    // check if email already exists
+
+    const saltRound = 13;
     // check email
-    const hashedPassword = await bcrypt.hash(password , saltRound);
+    const hashedPassword = await bcrypt.hash(password, saltRound);
     if (!hashedPassword) {
       throw new Error("error hashing");
     }
-    // add user to data
-    addUser({
+    // add user to database
+    const newUser = new User({
       email,
       password: hashedPassword,
     });
-    req.flash("success", "Registration success");
-    res.redirect("/");
+
+    try {
+      await newUser.save();
+      req.flash("success", "Registration success");
+      res.redirect("/");
+    } catch (e) {
+      req.flash("error", "Error registering user");
+      res.redirect("/register");
+    }
   }
 });
 
@@ -147,28 +158,25 @@ app.post("/login", checkSchema(validationUser), async (req, res) => {
   } else {
     const { email, password } = req.body;
     try {
-      const data = fs.readFileSync('database/login.json');
-      const dataJson = JSON.parse(data);
-      // check email
-      const user = dataJson.find(data => data.email === email);
-      if(!user) {
+      //  check if email is already in the database
+      const emailUser = await User.findOne({ email : email });
+      if (!emailUser) {
         req.flash("error", "Email not found");
         res.redirect("/login");
         return;
       }
-  
       // check password
-      const validPassword = await bcrypt.compare(password, user.password);
+      const validPassword = await bcrypt.compare(password, User.password);
       if (!validPassword) {
         req.flash("error", "incorrect password");
         res.redirect("/login");
         return;
       }
-  
+
       // set session
-      req.flash("success", "Login Success")
+      req.flash("success", "Login Success");
       res.redirect("/");
-    }catch (err) {
+    } catch (err) {
       req.flash("error", "Invalid email or password");
       res.redirect("/login");
     }
