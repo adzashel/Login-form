@@ -37,12 +37,14 @@
         name="password"
       />
     </div>
-    <br>
-   <% if (errMessage.length !== 0) { %>
-    <li class="err-msg">
-      <%= errMessage %>
-    </li>
-   <% } %>
+    <br />
+    <% if ( errMessage !== 0) { %>
+     <%  errMessage.forEach(error => { %>
+      <li class="err-msg">
+        <%= error %>
+      </li>
+     <% }) %>
+    <% } %>
     <button type="submit" class="btn">Login</button>
     <p>Don't have an account? <a href="/register">Register</a></p>
   </form>
