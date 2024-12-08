@@ -109,17 +109,15 @@ a {
 }
 
 .email-pass {
-    display: grid;
-    grid-template-columns: repeat(2 , 150px);
-    gap: 2rem;
+    display: block;
 }
 
 .email-pass > .child {
-    width: 165px;
+    width: 300px;
     display: flex;
     margin-top: 2rem;
     align-items: center;
-    margin-left: 5rem;
+    margin-left: 6rem;
     gap: 1rem;
     background-color: #15151c;
     border-radius: 10px;
@@ -148,4 +146,78 @@ a {
 
   .req-header {
     margin-top: 2rem;
+}
+
+
+/* query for tablet */
+@media only screen and (min-width: 768px) and (max-width: 1200px) {
+    .container {
+        margin-top: 13rem;
+    }
+}
+
+/* query for phone */
+@media only screen and (min-width : 320px) {
+    form {
+        width: 350px;
+        height: 450px;
+    }
+
+    .container {
+        margin-top: 5rem;
+    }
+
+    .reg-group {
+        width: 250px;
+        margin-left: 3.1rem ;
+    }
+
+    input {
+        padding-top: 10px !important;
+    padding-left: 40px !important;
+    margin-bottom: 10px;
+    align-items: center;
+    width: 100%;
+    border-radius: 0.5rem;
+    border: none !important;
+    outline: none;
+    background: none !important;
+    font-size: 1rem;
+    color: #ccc !important;
+    }
+
+    .btn {
+        padding: 12px;
+        margin-top: 15px;
+        background-color: #ffeba7;
+        color:#2a2b38;
+        border-radius: 5px ;
+        border: none;
+        cursor: pointer;
+        margin-left: 8.8rem;
+        font-size: 1rem ;
+        font-weight: 400;
+    }
+
+    .email-pass > .child {
+        width: 250px;
+        display: flex;
+        margin-top: 2rem;
+        align-items: center;
+        margin-left: 3rem;
+        gap: 1rem;
+        background-color: #15151c;
+        border-radius: 10px;
+    }
+
+    .err-msg {
+        /* ... other styles ... */
+        animation: shake 0.5s;
+        color:  rgb(220,20,60);
+        animation-iteration-count: 2;
+        list-style-type: none;
+        text-align: start;
+        font-size: 12px;
+        margin-left: 3rem;
+    }
 }

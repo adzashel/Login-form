@@ -2,28 +2,7 @@
 <div class="container">
   <!-- form register -->
   <form action="/register" method="post">
-    <h1 class="reg-header">Register</h1>
-    <div class="reg-group">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        fill="currentColor"
-        class="input-icon"
-        viewBox="0 0 16 16"
-      >
-        <path
-          d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"
-        />
-      </svg>
-      <input
-        type="text"
-        name="name"
-        id="name"
-        placeholder="enter ur name"
-        required
-      />
-    </div>
+    <h1 class="reg-header">Sign Up</h1>
     <div class="email-pass">
       <div class="child">
         <svg
@@ -64,7 +43,7 @@
     <% if (typeof errors !== 'undefined') { %> <% errors.forEach(error => { %>
     <li class="err-msg"><%= error.msg %></li>
     <% }) %> <% } %>
-    <button type="submit" class="btn">register</button>
-    <p>Already have an account ? <a href="/login">Login</a></p>
+    <button type="submit" class="btn">Sign Up</button>
+    <p>Already have an account ? <a href="/login">Sign In</a></p>
   </form>
 </div>
