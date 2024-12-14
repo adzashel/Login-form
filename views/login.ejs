@@ -35,16 +35,19 @@
         class="form-control"
         id="password"
         name="password"
-      />
+      />  
     </div>
     <br />
-    <% if ( errMessage !== 0) { %>
-     <%  errMessage.forEach(error => { %>
-      <li class="err-msg">
-        <%= error %>
-      </li>
-     <% }) %>
-    <% } %>
+    <% if (typeof errMessage !== 'undefined') { %> <% errMessage.forEach(error => { %>
+      <li class="err-msg"><%= error.msg %></li>
+      <% }) %> <% } %>
+      <% if (errMessage.length !== 0 ) { %>
+        <% errMessage.forEach(error => { %>
+          <li class="err-msg">
+            <%= error %></li>
+          </li>
+        <% }) %>
+      <% } %>
     <button type="submit" class="btn">Sign In</button>
     <p>Don't have an account? <a href="/register">Sign Up</a></p>
   </form>

@@ -43,6 +43,12 @@
     <% if (typeof errors !== 'undefined') { %> <% errors.forEach(error => { %>
     <li class="err-msg"><%= error.msg %></li>
     <% }) %> <% } %>
+
+    <% if (errors.length !== 0 ) { %>
+      <% errors.forEach(error => { %>
+        <li class="err-msg"><%= error %></li>
+      <% }) %>
+    <% } %>
     <button type="submit" class="btn">Sign Up</button>
     <p>Already have an account ? <a href="/login">Sign In</a></p>
   </form>

@@ -10,7 +10,8 @@ const flash = require("connect-flash");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 
-// connect to mongodb
+
+// connect to mongodb server
 mongoose
   .connect("mongodb://localhost:27017/login", {
     useNewUrlParser: true,
@@ -26,7 +27,8 @@ const userSchema = new mongoose.Schema({
 });
 
 // create User model
-const User = mongoose.model("user_login", userSchema);
+
+const User = mongoose.model("user_logins", userSchema);
 
 
 // use express-session middleware and cookie parser
@@ -98,9 +100,9 @@ app.get("/", (req, res) => {
 // register route middleware
 app.get("/register", (req, res) => {
   res.render("register", {
+    errors : req.flash("error"),
     title: "Register",
     layout: "layouts/container",
-    errMessage: req.flash("error"),
   });
 });
 
@@ -108,88 +110,90 @@ app.get("/login", (req, res) => {
   res.render("login", {
     title: "Login",
     layout: "layouts/container",
-    errMessage: req.flash("error"),
+    errMessage : req.flash("error"),
   });
 });
 
 // send request to register
-app.post("/register", 
-  checkSchema(validationEmailPass), 
-  async (req, res) => {
+app.post("/register", checkSchema(validationEmailPass), async (req, res) => {
   const errors = validationResult(req);
-  // check if error is exist
+  // if errors is exist
   if (!errors.isEmpty()) {
-    res.render("register", {
+    return res.render("register", {
       title: "Register",
       layout: "layouts/container",
       errors: errors.array(),
     });
-  } else {
-    const { email, password } = req.body;
-    const saltRound = 13;
-    // check email
-    const hashedPassword = await bcrypt.hash(password, saltRound);
-    if (!hashedPassword) {
-      throw new Error("error hashing");
+  }
+
+  const { email, password } = req.body;
+  saltRound = 13;
+  // check email , if email is already registered return an error message
+  try {
+    // hashed password
+    const hashedPass = await bcrypt.hash(password, saltRound);
+    if (!hashedPass) {
+      throw new Error("hashed Failed");
     }
 
-    try {
-      // add user to database
-      const newUser = new User({
-        email,
-        password: hashedPassword,
-      });
-
-      await newUser.save();
-      req.flash("success", "Registration success");
-      res.redirect("/");
-    } catch (e) {
-      if(e.code === 11000) {
-        req.flash("error", "Email already registered");
-        res.redirect("/register");
-        return;
-      }
-      req.flash("error", "Error registering user");
+    // email exist or not
+    const userEmail = await User.findOne({ email });
+    if (userEmail) {
+      req.flash("error", "Email already registered");
       res.redirect("/register");
+      return;
     }
+
+    // add new user
+    const newUser = new User({ email, password: hashedPass });
+    await newUser.save();
+    req.flash("success", "Registration success");
+    res.redirect("/");
+  } catch {
+    req.flash("error", "Error registering");
+    res.redirect("/register");
+    return;
   }
 });
 
-app.post("/login", checkSchema(validationUser), async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    res.render("login", {
-      title: "Login",
-      layout: "layouts/container",
-      errMessage: errors.array(),
-    });
-  } else {
+app.post('/login' , 
+  checkSchema(validationUser),
+  async ( req , res ) => {
+    const errors = validationResult(req);
+    if( !errors.isEmpty() ) {
+      return res.render('login', {
+        title : 'Login',
+        layout : 'layouts/container',
+        errMessage : errors.array(),
+      });
+    };
+
     const { email , password } = req.body;
 
     try {
-      // check email , if email is not correct return an error message
-      const user = await User.findOne( { email } );
-      if(!user) {
-        req.flash('error' , "Email not found");
+      const validUser = await User.findOne({ email });
+      if( validUser === false ) {
+        req.flash('error', 'Email not found');
         res.redirect('/login');
         return;
       }
 
-      // check password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if(!isMatch) {
-        req.flash('error' , "Incorrect password");
+      const isMatch = await bcrypt.compare( password , validUser.password );
+      if( !isMatch ) {
+        req.flash('error', 'Incorrect password');
         res.redirect('/login');
         return;
       }
 
-    } catch(e) {
-      req.flash('error' , "Error logging in");
+      req.flash('success', 'Login successful');
+      res.redirect('/');
+    } catch(err) {
+      req.flash('error', 'Error logging in');
       res.redirect('/login');
       return;
     }
   }
-});
+)
 
 app.listen(port, (err, res) => {
   if (err) {
@@ -198,5 +202,3 @@ app.listen(port, (err, res) => {
     console.log(`Server running on port http://localhost:${port}`);
   }
 });
-
-
